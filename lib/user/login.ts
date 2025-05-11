@@ -7,7 +7,7 @@ export function useAuth() {
   const user = useQuery({
     queryKey: ["getUser"],
     queryFn: async () => {
-      const res = await fetch("http://localhost:3000/api/me", {
+      const res = await fetch("http://192.168.0.252:3000/api/me", {
         credentials: "include", // pour envoyer les cookies de session
       });
       if (!res.ok) throw new Error("Non connecté");
@@ -17,32 +17,71 @@ export function useAuth() {
 
   // Mutation de login
   const login = useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+  mutationFn: async ({ email, password }: { email: string; password: string }) => {
+    try {
       const formData = new FormData();
       formData.append("email", email);
       formData.append("password", password);
 
-      const res = await fetch("http://localhost:3000/api/login", {
+      const res = await fetch("http://192.168.0.252:3000/api/login", {
         method: "POST",
         body: formData,
-        credentials: "include", 
+        credentials: "include",
       });
 
       if (!res.ok) {
-        const error = await res.json();
+        const error = await res.json().catch(() => ({})); // éviter un crash si pas de JSON
         throw new Error(error?.error || "Erreur lors de la connexion");
       }
 
       return res.json(); // peut contenir des infos utiles
+    } catch (err: any) {
+      console.error("Erreur de connexion :", err);
+      throw new Error(err.message || "Échec de la requête réseau");
+    }
+  },
+  onSuccess: () => {
+    client.invalidateQueries({ queryKey: ["getUser"] });
+  },
+});
+
+
+  const register = useMutation({
+    mutationFn: async ({ email, password, pseudo }: { email: string; password: string; pseudo: string }) => {
+      try {
+        const formData = new FormData();
+        formData.append("email", email);
+        formData.append("password", password);
+        formData.append("pseudo", pseudo);
+
+        const res = await fetch("http://192.168.0.252:3000/api/register", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({}));
+          throw new Error(error?.error || "Erreur lors de l'inscription");
+        }
+
+        return res.json(); // { success: true, email, pseudo }
+      } catch (err: any) {
+        console.error("Erreur d'inscription :", err);
+        throw new Error(err.message || "Échec de la requête réseau");
+      }
     },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: ["getUser"] }); // rafraîchir les données utilisateur
+      // Optionnel : tu peux automatiquement récupérer le user après inscription
+      client.invalidateQueries({ queryKey: ["getUser"] });
     },
   });
 
+
+
   const logout = useMutation({
     mutationFn: async () => {
-      const res = await fetch("http://localhost:3000/api/logout", {
+      const res = await fetch("http://192.168.0.252:3000/api/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -59,6 +98,7 @@ export function useAuth() {
   return {
     user,
     login,
-    logout
+    logout,
+    register
   };
 }
