@@ -1,3 +1,4 @@
+// path: src/lib/user/useAuth.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useAuth() {
@@ -11,7 +12,7 @@ export function useAuth() {
         credentials: "include", // pour envoyer les cookies de session
       });
       if (!res.ok) throw new Error("Non connecté");
-      return res.json(); // retourne l'utilisateur (ex: { email, username })
+      return res.json(); // retourne l'utilisateur (ex: { email, pseudo })
     },
   });
 
@@ -64,7 +65,7 @@ export function useAuth() {
           const error = await res.json().catch(() => ({}));
           throw new Error(error?.error || "Erreur lors de l'inscription");
         }
-
+        console.log("Inscription réussie :", res);
         return res.json(); // { success: true, email, pseudo }
       } catch (err: any) {
         console.error("Erreur d'inscription :", err);
@@ -74,6 +75,7 @@ export function useAuth() {
     onSuccess: () => {
       // Optionnel : tu peux automatiquement récupérer le user après inscription
       client.invalidateQueries({ queryKey: ["getUser"] });
+      console.log("Inscription réussie !");
     },
   });
 

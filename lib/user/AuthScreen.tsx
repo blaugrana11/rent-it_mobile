@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet } from "react-native";
-import { useAuth } from "./login"; // Import from the same directory
+import { ActivityIndicator, Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { useAuth } from "./useAuth";
 
 export default function AuthScreen() {
   const { user, login, logout } = useAuth();
@@ -9,7 +9,7 @@ export default function AuthScreen() {
   const [password, setPassword] = useState("");
 
   if (user.isLoading) return <ActivityIndicator size="large" style={styles.loading} />;
-  if (user.isError) {
+  if (user.isError || !user.data) { // Ajout de la vérification !user.data
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Veuillez vous connecter</Text>
@@ -44,7 +44,7 @@ export default function AuthScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Bienvenue {user.data.username || user.data.email}</Text>
+      <Text style={styles.title}>Bienvenue {user.data?.pseudo || user.data?.email}</Text>
       <Button
         title={logout.isPending ? "Déconnexion..." : "Se déconnecter"}
         onPress={() => logout.mutate()}

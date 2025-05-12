@@ -1,6 +1,8 @@
+// path: src/lib/user/RegisterScreen.tsx
+
 import { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
-import { useAuth } from "./login";
+import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { useAuth } from "./useAuth";
 
 export default function RegisterScreen() {
   const { register } = useAuth();

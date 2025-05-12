@@ -1,3 +1,5 @@
+// path: src/app/tab/login.tsx
+
 import AuthScreen from "@/lib/user/AuthScreen";
 import { View, StyleSheet, Platform } from "react-native";
 
