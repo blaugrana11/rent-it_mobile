@@ -33,7 +33,7 @@ export async function fetchListings(params?: ListingSearchParams): Promise<Listi
       }
     });
   }
-
+  
   const res = await fetch(url.toString(), {
     credentials: "include",
   });

@@ -1,52 +1,66 @@
-// app/(tab)/listings.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { API_BASE_URL, fetchListings, Listing } from '@/lib/api/listings';
+import { fetchListings, Listing, ListingSearchParams } from '@/lib/api/listings';
+import SearchBar from '@/components/SearchBar';
+import { API_BASE_URL } from '@/lib/api/listings';
 
 export default function ListingsScreen() {
   const [listings, setListings] = useState<Listing[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchParams, setSearchParams] = useState<ListingSearchParams>({});
+
+  const loadListings = async (params: ListingSearchParams = {}) => {
+    setLoading(true);
+    try {
+      const data = await fetchListings(params);
+      setListings(data);
+    } catch (err) {
+      console.error(err);
+      setListings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchListings({})
-      .then(data => setListings(data))
-      .catch(err => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
+    loadListings(searchParams);
+  }, [searchParams]);
 
-  if (loading) {
-    return <ActivityIndicator size="large" style={{ marginTop: 50 }} />;
-  }
-
-  if (!listings || listings.length === 0) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.emptyText}>No listings found.</Text>
-      </View>
-    );
-  }
+  const handleSearch = (params: ListingSearchParams) => {
+    setSearchParams(params);
+  };
 
   return (
-    <FlatList
-      data={listings}
-      keyExtractor={(item) => item._id}
-      contentContainerStyle={{ padding: 16 }}
-      renderItem={({ item }) => (
-        <TouchableOpacity style={styles.card}>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.desc}>{item.description}</Text>
-          <Text style={styles.price}>{item.price}€</Text>
-          {item.condition && <Text style={styles.condition}>{item.condition}</Text>}
-          {item.images && item.images.length > 0 && (
-            
+    <View style={{ flex: 1, padding: 16 }}>
+      <SearchBar onSearch={handleSearch} />
+
+      {loading ? (
+        <ActivityIndicator size="large" style={{ marginTop: 50 }} />
+      ) : listings?.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={styles.emptyText}>No listings found.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={listings}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.card}>
+              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.desc}>{item.description}</Text>
+              <Text style={styles.price}>{item.price}€</Text>
+              {item.condition && <Text style={styles.condition}>{item.condition}</Text>}
+              {item.images?.[0] && (
             <Image
-  source={{ uri: `${API_BASE_URL}${item.images[0]}` }}
-  style={styles.image}
-/>
+              source={{ uri: `${API_BASE_URL}${item.images[0]}` }}
+              style={styles.image}
+            />
+            )}
+            </TouchableOpacity>
           )}
-        </TouchableOpacity>
+        />
       )}
-    />
+    </View>
   );
 }
 
