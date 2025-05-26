@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from "expo-router";
 import { View, Text, FlatList, ActivityIndicator, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { fetchListings, Listing, ListingSearchParams } from '@/lib/api/listings';
 import SearchBar from '@/components/SearchBar';
 import { API_BASE_URL } from '@/lib/api/listings';
 
+const router = useRouter();
 export default function ListingsScreen() {
   const [listings, setListings] = useState<Listing[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,10 @@ export default function ListingsScreen() {
           data={listings}
           keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.card}>
+            <TouchableOpacity style={styles.card} onPress={() => router.push({
+      pathname: "/listings/[id]",
+      params: { id: item._id },
+    })}>
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.desc}>{item.description}</Text>
               <Text style={styles.price}>{item.price}€</Text>

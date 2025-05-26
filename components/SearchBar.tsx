@@ -1,108 +1,105 @@
 // components/SearchBar.tsx
-import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { ListingSearchParams } from "@/lib/api/listings";
+import { Picker } from "@react-native-picker/picker";
+import React, { useState } from "react";
+import { Button, StyleSheet, TextInput, View } from "react-native";
+
+const CONDITIONS = ["", "neuf", "comme neuf", "bon état", "état moyen", "mauvais état"];
 
 type Props = {
-  onSearch: (params: {
-    query?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    condition?: string;
-  }) => void;
+  onSearch: (params: ListingSearchParams) => void;
 };
 
-const CONDITIONS = [
-  '',
-  'neuf',
-  'comme neuf',
-  'bon état',
-  'état moyen',
-  'mauvais état',
-];
-
 export default function SearchBar({ onSearch }: Props) {
-  const [query, setQuery] = useState('');
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-  const [condition, setCondition] = useState('');
+  const [query, setQuery] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [condition, setCondition] = useState("");
 
   const handleSubmit = () => {
     onSearch({
-      query: query.trim() || undefined,
-      minPrice: minPrice ? Number(minPrice) : undefined,
-      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      query: query || undefined,
+      minPrice: minPrice ? parseFloat(minPrice) : undefined,
+      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
       condition: condition || undefined,
     });
+  };
+
+  const handleReset = () => {
+    setQuery("");
+    setMinPrice("");
+    setMaxPrice("");
+    setCondition("");
+    onSearch({});
   };
 
   return (
     <View style={styles.container}>
       <TextInput
-        style={styles.input}
-        placeholder="Search in Rent it"
+        placeholder="Search..."
         value={query}
         onChangeText={setQuery}
+        style={styles.input}
       />
+
       <View style={styles.row}>
         <TextInput
-          style={[styles.input, styles.smallInput]}
-          placeholder="Minimum price"
-          keyboardType="numeric"
+          placeholder="Min price"
           value={minPrice}
           onChangeText={setMinPrice}
+          keyboardType="numeric"
+          style={[styles.input, styles.half]}
         />
         <TextInput
-          style={[styles.input, styles.smallInput]}
-          placeholder="Maximum price"
-          keyboardType="numeric"
+          placeholder="Max price"
           value={maxPrice}
           onChangeText={setMaxPrice}
+          keyboardType="numeric"
+          style={[styles.input, styles.half]}
         />
       </View>
-      <View style={styles.pickerWrapper}>
-        <Picker
-          selectedValue={condition}
-          onValueChange={(itemValue: string) => setCondition(itemValue)}
-        >
-          {CONDITIONS.map((c) => (
-            <Picker.Item
-              key={c}
-              label={c === '' ? 'Condition' : c}
-              value={c}
-            />
-          ))}
-        </Picker>
+
+      <Picker
+        selectedValue={condition}
+        onValueChange={(itemValue: string) => setCondition(itemValue)}
+        style={styles.picker}
+      >
+        {CONDITIONS.map((c) => (
+          <Picker.Item
+            key={c}
+            label={c === "" ? "Condition" : c}
+            value={c}
+          />
+        ))}
+      </Picker>
+
+      <View style={styles.buttonGroup}>
+        <Button title="Search" onPress={handleSubmit} />
+        <View style={{ width: 12 }} />
+        <Button title="Reset" color="#888" onPress={handleReset} />
       </View>
-      <Button title="Search" onPress={handleSubmit} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 16,
-    backgroundColor: '#f3f4f6',
-    padding: 12,
-    borderRadius: 12,
-  },
+  container: { marginBottom: 16 },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: "#f3f4f6",
     padding: 10,
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  smallInput: {
-    flex: 1,
-  },
-  pickerWrapper: {
-    backgroundColor: '#fff',
+  row: { flexDirection: "row", justifyContent: "space-between" },
+  half: { width: "48%" },
+  picker: {
+    backgroundColor: "#f3f4f6",
     borderRadius: 8,
-    marginBottom: 10,
-    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  buttonGroup: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 4,
   },
 });
