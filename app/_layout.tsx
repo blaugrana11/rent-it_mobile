@@ -8,7 +8,7 @@ export default function RootLayout() {{
   useReactQueryDevTools(queryClient);
   return (
     <QueryClientProvider client={queryClient}>
-      <Stack/>
+      <Stack screenOptions={{ headerShown: false }} />
     </QueryClientProvider>
   );
 }}
