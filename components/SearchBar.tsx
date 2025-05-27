@@ -1,10 +1,19 @@
-// components/SearchBar.tsx
-import { ListingSearchParams } from "@/lib/api/listings";
-import { Picker } from "@react-native-picker/picker";
 import React, { useState } from "react";
-import { Button, StyleSheet, TextInput, View } from "react-native";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Text,
+  Modal,
+  FlatList,
+  Platform,
+  KeyboardAvoidingView,
+  SafeAreaView,
+} from "react-native";
+import { ListingSearchParams } from "@/lib/api/listings";
 
-const CONDITIONS = ["", "neuf", "comme neuf", "bon état", "état moyen", "mauvais état"];
+const CONDITIONS = ["neuf", "comme neuf", "bon état", "état moyen", "mauvais état"];
 
 type Props = {
   onSearch: (params: ListingSearchParams) => void;
@@ -15,6 +24,7 @@ export default function SearchBar({ onSearch }: Props) {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [condition, setCondition] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
 
   const handleSubmit = () => {
     onSearch({
@@ -34,72 +44,169 @@ export default function SearchBar({ onSearch }: Props) {
   };
 
   return (
-    <View style={styles.container}>
-      <TextInput
-        placeholder="Search..."
-        value={query}
-        onChangeText={setQuery}
-        style={styles.input}
-      />
-
-      <View style={styles.row}>
-        <TextInput
-          placeholder="Min price"
-          value={minPrice}
-          onChangeText={setMinPrice}
-          keyboardType="numeric"
-          style={[styles.input, styles.half]}
-        />
-        <TextInput
-          placeholder="Max price"
-          value={maxPrice}
-          onChangeText={setMaxPrice}
-          keyboardType="numeric"
-          style={[styles.input, styles.half]}
-        />
-      </View>
-
-      <Picker
-        selectedValue={condition}
-        onValueChange={(itemValue: string) => setCondition(itemValue)}
-        style={styles.picker}
-      >
-        {CONDITIONS.map((c) => (
-          <Picker.Item
-            key={c}
-            label={c === "" ? "Condition" : c}
-            value={c}
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <View style={styles.container}>
+          <TextInput
+            placeholder="🔍 Rechercher une annonce"
+            value={query}
+            onChangeText={setQuery}
+            style={styles.input}
+            placeholderTextColor="#888"
           />
-        ))}
-      </Picker>
 
-      <View style={styles.buttonGroup}>
-        <Button title="Search" onPress={handleSubmit} />
-        <View style={{ width: 12 }} />
-        <Button title="Reset" color="#888" onPress={handleReset} />
-      </View>
-    </View>
+          <View style={styles.row}>
+            <TextInput
+              placeholder="Prix min"
+              value={minPrice}
+              onChangeText={setMinPrice}
+              keyboardType="numeric"
+              style={[styles.input, styles.half]}
+              placeholderTextColor="#888"
+            />
+            <TextInput
+              placeholder="Prix max"
+              value={maxPrice}
+              onChangeText={setMaxPrice}
+              keyboardType="numeric"
+              style={[styles.input, styles.half]}
+              placeholderTextColor="#888"
+            />
+          </View>
+
+          {/* Custom condition picker */}
+          <TouchableOpacity
+            style={styles.selector}
+            onPress={() => setModalVisible(true)}
+          >
+            <Text style={{ color: condition ? "#000" : "#888" }}>
+              {condition ? `État : ${condition}` : "📦 Choisir une condition"}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Buttons */}
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity style={styles.searchButton} onPress={handleSubmit}>
+              <Text style={styles.searchText}>Rechercher</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+              <Text style={styles.resetText}>Réinitialiser</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/* Condition modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPressOut={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <FlatList
+              data={CONDITIONS}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setCondition(item);
+                    setModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 16 },
-  input: {
-    backgroundColor: "#f3f4f6",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 8,
+  safe: {
+    backgroundColor: "#fff",
   },
-  row: { flexDirection: "row", justifyContent: "space-between" },
-  half: { width: "48%" },
-  picker: {
-    backgroundColor: "#f3f4f6",
-    borderRadius: 8,
-    marginBottom: 8,
+  container: {
+    padding: 16,
+    backgroundColor: "#fff",
+  },
+  input: {
+    backgroundColor: "#f1f3f5",
+    padding: 12,
+    borderRadius: 12,
+    fontSize: 16,
+    marginBottom: 12,
+    color: "#111",
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  half: {
+    width: "48%",
+  },
+  selector: {
+    backgroundColor: "#f1f3f5",
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
   },
   buttonGroup: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 4,
+    gap: 12,
+  },
+  searchButton: {
+    flex: 1,
+    backgroundColor: "#007AFF",
+    padding: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  searchText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  resetButton: {
+    flex: 1,
+    backgroundColor: "#e9ecef",
+    padding: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  resetText: {
+    color: "#333",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: "50%",
+  },
+  modalItem: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  modalItemText: {
+    fontSize: 16,
   },
 });

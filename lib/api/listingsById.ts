@@ -1,8 +1,8 @@
-import { Listing } from "./listings"; // ou définis ici si besoin
+import { API_BASE_URL, Listing } from "./listings"; // ou définis ici si besoin
 import { useQuery } from "@tanstack/react-query";
 
 export async function fetchListingById(id: string): Promise<Listing> {
-  const res = await fetch(`http://localhost:3000/api/listings/${id}`, {
+  const res = await fetch(`${API_BASE_URL}/api/listings/${id}`, {
     credentials: "include",
   });
 

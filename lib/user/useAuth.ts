@@ -1,7 +1,6 @@
 // path: src/lib/user/useAuth.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
-const API_BASE_URL = "http://localhost:3000";
+import { API_BASE_URL } from "../api/listings";
 
 export function useAuth() {
   const client = useQueryClient();

@@ -1,7 +1,7 @@
 // lib/api/listings.ts
 import { useQuery } from "@tanstack/react-query";
 
-export const API_BASE_URL = "http://localhost:3000"; // ou ton IP locale ou URL de prod
+export const API_BASE_URL = "http://192.168.0.252:3000"  //"http://localhost:3000"; // ou ton IP locale ou URL de prod
 
 // Typage (à adapter selon ton backend)
 export type Listing = {
