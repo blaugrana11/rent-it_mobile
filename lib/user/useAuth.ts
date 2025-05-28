@@ -2,17 +2,34 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL } from "../api/listings";
 
+let authToken: string | null = null;
+
 export function useAuth() {
   const client = useQueryClient();
 
   const user = useQuery({
     queryKey: ["getUser"],
     queryFn: async () => {
+      console.log("Fetching user...");
+      
+      const headers: Record<string, string> = {};
+      
+      // Si on a un token, l'ajouter aux headers
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+      
       const res = await fetch(`${API_BASE_URL}/api/me`, {
-        credentials: "include",
+        credentials: "include", // Garde ça pour la compatibilité web
+        headers,
       });
+      
+      console.log("Response status:", res.status);
       if (!res.ok) throw new Error("Non connecté");
-      return res.json();
+      
+      const data = await res.json();
+      console.log("User data received:", data);
+      return data;
     },
   });
 
@@ -34,7 +51,16 @@ export function useAuth() {
           throw new Error(error?.error || "Erreur lors de la connexion");
         }
 
-        return res.json();
+        const data = await res.json();
+        console.log("Login response:", data);
+        
+        // Stocker le token s'il est présent
+        if (data.token) {
+          authToken = data.token;
+          console.log("Token stored for mobile");
+        }
+        
+        return data;
       } catch (err: any) {
         console.error("Erreur de connexion :", err);
         throw new Error(err.message || "Échec de la requête réseau");
