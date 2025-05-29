@@ -1,5 +1,5 @@
-// src/screens/MyListingsPage.tsx (ou ton dossier pages)
-import React from 'react';
+// src/screens/MyListingsPage.tsx
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -9,17 +9,29 @@ import {
   SafeAreaView,
   Image,
   TouchableOpacity,
-  Dimensions
+  Dimensions,
+  Alert
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../lib/user/useAuth';
 import { useUserListings } from '../lib/user/useUserListings';
-import { API_BASE_URL } from '@/lib/api/listings';
+import { API_BASE_URL } from '../lib/api/listings';
 
 const { width } = Dimensions.get('window');
 
-export default function MyListingsPage() {
+// Fonction helper pour construire l'URL complète de l'image
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath) return null;
+  // Si l'URL est déjà complète, la retourner telle quelle
+  if (imagePath.startsWith('http')) return imagePath;
+  // Sinon, construire l'URL complète
+  return `${API_BASE_URL}${imagePath}`;
+};
+
+export default function MyListingsPage({ navigation }: { navigation: any }) {
   const { user } = useAuth();
   const userId = user.data?._id;
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
   
   const { 
     data: userListingsData, 
@@ -28,10 +40,73 @@ export default function MyListingsPage() {
     refetch 
   } = useUserListings(userId || '');
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
+  // Fonction pour supprimer une annonce
+  const handleDeleteListing = async (listingId: string, listingTitle: string) => {
+    Alert.alert(
+      "Supprimer l'annonce",
+      `Êtes-vous sûr de vouloir supprimer "${listingTitle}" ?`,
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setDeletingIds(prev => [...prev, listingId]);
+              
+              const response = await fetch(`${API_BASE_URL}/api/profile/${userId}/${listingId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (!response.ok) {
+                throw new Error('Erreur lors de la suppression');
+              }
+
+              // Recharger la liste après suppression
+              await refetch();
+              
+              Alert.alert("Succès", "L'annonce a été supprimée avec succès");
+            } catch (error) {
+              console.error('Erreur suppression:', error);
+              Alert.alert("Erreur", "Impossible de supprimer l'annonce. Veuillez réessayer.");
+            } finally {
+              setDeletingIds(prev => prev.filter(id => id !== listingId));
+            }
+          }
+        }
+      ]
+    );
+  };
+
   // Si pas connecté
   if (!user.data) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <View style={styles.headerContent}>
+              <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+                <View style={styles.backButtonContainer}>
+                  <Ionicons name="arrow-back" size={24} color="#007AFF" />
+                </View>
+              </TouchableOpacity>
+              <View style={styles.titleSection}>
+                <Text style={styles.title}>Mes Annonces</Text>
+                <Text style={styles.subtitle}>Gérez vos publications</Text>
+              </View>
+            </View>
+          </View>
+        </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorIcon}>🔒</Text>
           <Text style={styles.errorText}>Vous devez être connecté</Text>
@@ -45,6 +120,21 @@ export default function MyListingsPage() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <View style={styles.headerContent}>
+              <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+                <View style={styles.backButtonContainer}>
+                  <Ionicons name="arrow-back" size={24} color="#007AFF" />
+                </View>
+              </TouchableOpacity>
+              <View style={styles.titleSection}>
+                <Text style={styles.title}>Mes Annonces</Text>
+                <Text style={styles.subtitle}>Gérez vos publications</Text>
+              </View>
+            </View>
+          </View>
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Chargement de vos annonces...</Text>
@@ -57,6 +147,21 @@ export default function MyListingsPage() {
   if (error) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <View style={styles.headerWrapper}>
+          <View style={styles.header}>
+            <View style={styles.headerContent}>
+              <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+                <View style={styles.backButtonContainer}>
+                  <Ionicons name="arrow-back" size={24} color="#007AFF" />
+                </View>
+              </TouchableOpacity>
+              <View style={styles.titleSection}>
+                <Text style={styles.title}>Mes Annonces</Text>
+                <Text style={styles.subtitle}>Gérez vos publications</Text>
+              </View>
+            </View>
+          </View>
+        </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.errorText}>
@@ -72,18 +177,30 @@ export default function MyListingsPage() {
 
   const listings = userListingsData?.listings || [];
 
-  // Header avec titre et stats
+  // Header avec titre et stats - Version avec bouton back intégré
   const ListHeader = () => (
-    <View style={styles.header}>
-      <View style={styles.headerContent}>
-        <Text style={styles.greeting}>Bonjour {user.data?.pseudo} 👋</Text>
-        <Text style={styles.title}>Mes Annonces</Text>
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{listings.length}</Text>
-            <Text style={styles.statLabel}>annonces</Text>
+    <View style={styles.headerWrapper}>
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+            <View style={styles.backButtonContainer}>
+              <Ionicons name="arrow-back" size={24} color="#007AFF" />
+            </View>
+          </TouchableOpacity>
+          
+          <View style={styles.titleSection}>
+            <Text style={styles.title}>Mes Annonces</Text>
+            <Text style={styles.subtitle}>Gérez vos publications</Text>
           </View>
-          {/* Tu peux ajouter d'autres stats ici */}
+          
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{listings.length}</Text>
+              <Text style={styles.statLabel}>
+                {listings.length <= 1 ? 'annonce' : 'annonces'}
+              </Text>
+            </View>
+          </View>
         </View>
       </View>
     </View>
@@ -110,58 +227,100 @@ export default function MyListingsPage() {
   }
 
   // Render d'une annonce
-  const renderListing = ({ item, index }: { item: any; index: number }) => (
-    <TouchableOpacity 
-      style={[styles.listingCard, { marginTop: index === 0 ? 0 : 12 }]}
-      activeOpacity={0.7}
-    >
-      {/* Image de l'annonce */}
-      <View style={styles.imageContainer}>
-        {item.images && item.images.length > 0 ? (
-          <Image 
-            source={{ uri: `${API_BASE_URL}${item.images[0]}` }} 
-            style={styles.listingImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <Text style={styles.placeholderText}>📷</Text>
-          </View>
-        )}
-        
-        {/* Badge du nombre d'images */}
-        {item.images && item.images.length > 1 && (
-          <View style={styles.imageCountBadge}>
-            <Text style={styles.imageCountText}>{item.images.length}</Text>
-          </View>
-        )}
-      </View>
+  const renderListing = ({ item, index }: { item: any; index: number }) => {
+    // Construire l'URL complète de la première image
+    const imageUrl = item.images && item.images.length > 0 
+      ? getImageUrl(item.images[0]) 
+      : null;
 
-      {/* Contenu de l'annonce */}
-      <View style={styles.listingContent}>
-        <View style={styles.listingHeader}>
-          <Text style={styles.listingTitle} numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text style={styles.listingPrice}>{item.price}€</Text>
+    const isDeleting = deletingIds.includes(item._id || item.id);
+
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.listingCard, 
+          { marginTop: index === 0 ? 0 : 12 },
+          isDeleting && styles.listingCardDeleting
+        ]}
+        activeOpacity={0.7}
+        disabled={isDeleting}
+      >
+        {/* Image de l'annonce */}
+        <View style={styles.imageContainer}>
+          {imageUrl ? (
+            <Image 
+              source={{ uri: imageUrl }} 
+              style={[styles.listingImage, isDeleting && styles.imageDeleting]}
+              resizeMode="cover"
+              onError={(error) => {
+                console.log('Erreur de chargement d\'image:', error.nativeEvent.error);
+                console.log('URL tentée:', imageUrl);
+              }}
+            />
+          ) : (
+            <View style={[styles.placeholderImage, isDeleting && styles.imageDeleting]}>
+              <Text style={styles.placeholderText}>📷</Text>
+            </View>
+          )}
+          
+          {/* Badge du nombre d'images */}
+          {item.images && item.images.length > 1 && (
+            <View style={styles.imageCountBadge}>
+              <Text style={styles.imageCountText}>{item.images.length}</Text>
+            </View>
+          )}
         </View>
-        
-        <Text style={styles.listingDescription} numberOfLines={2}>
-          {item.description}
-        </Text>
-        
-        <View style={styles.listingFooter}>
-          <Text style={styles.listingDate}>
-            {new Date(item.createdAt).toLocaleDateString('fr-FR', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric'
-            })}
+
+        {/* Contenu de l'annonce */}
+        <View style={[styles.listingContent, isDeleting && styles.contentDeleting]}>
+          <View style={styles.listingHeader}>
+            <Text style={styles.listingTitle} numberOfLines={2}>
+              {item.title}
+            </Text>
+            <Text style={styles.listingPrice}>{item.price}€</Text>
+          </View>
+          
+          <Text style={styles.listingDescription} numberOfLines={2}>
+            {item.description}
           </Text>
+          
+          <View style={styles.listingFooter}>
+            <Text style={styles.listingDate}>
+              {new Date(item.createdAt).toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+              })}
+            </Text>
+            
+            {/* Bouton supprimer déplacé */}
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={() => handleDeleteListing(item._id || item.id, item.title)}
+              disabled={isDeleting}
+              activeOpacity={0.8}
+            >
+              <View style={styles.deleteButtonInner}>
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Ionicons name="trash" size={16} color="white" />
+                )}
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+
+        {/* Overlay de suppression */}
+        {isDeleting && (
+          <View style={styles.deletingOverlay}>
+            <ActivityIndicator size="large" color="#FF3B30" />
+            <Text style={styles.deletingText}>Suppression...</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -184,38 +343,62 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   
-  // Header styles
+  // Back button styles
+  backButton: {
+    // Maintenant intégré dans le header
+  },
+  backButtonContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Header styles - Version avec bouton back intégré
+  headerWrapper: {
+    marginBottom: 20,
+    paddingHorizontal: 8,
+  },
   header: {
     backgroundColor: 'white',
-    paddingBottom: 20,
-    marginBottom: 16,
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowRadius: 12,
+    elevation: 5,
   },
   headerContent: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  greeting: {
-    fontSize: 16,
-    color: '#8E8E93',
-    marginBottom: 4,
+  titleSection: {
+    flex: 1,
+    marginLeft: 16,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#1C1C1E',
-    marginBottom: 16,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#8E8E93',
   },
   statsContainer: {
-    flexDirection: 'row',
+    marginLeft: 20,
   },
-  statItem: {
+  statCard: {
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: 'center',
-    marginRight: 24,
+    minWidth: 80,
   },
   statNumber: {
     fontSize: 24,
@@ -223,9 +406,10 @@ const styles = StyleSheet.create({
     color: '#007AFF',
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#8E8E93',
     marginTop: 2,
+    textAlign: 'center',
   },
 
   // Loading styles
@@ -403,14 +587,49 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#8E8E93',
   },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+
+  // Delete button styles - Version dans le footer
+  deleteButton: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  statusText: {
-    color: 'white',
-    fontSize: 12,
+  deleteButtonInner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Deleting states
+  listingCardDeleting: {
+    opacity: 0.6,
+  },
+  imageDeleting: {
+    opacity: 0.5,
+  },
+  contentDeleting: {
+    opacity: 0.7,
+  },
+  deletingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
+  },
+  deletingText: {
+    marginTop: 12,
+    fontSize: 16,
     fontWeight: '600',
+    color: '#FF3B30',
   },
 });
