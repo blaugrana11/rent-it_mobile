@@ -1,6 +1,7 @@
-// path: src/lib/user/useAuth.ts
+// src/lib/user/useAuth.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL } from "../api/listings";
+import { setAuthToken } from "../listings/useListings"; // Import de la fonction
 
 let authToken: string | null = null;
 
@@ -57,6 +58,7 @@ export function useAuth() {
         // Stocker le token s'il est présent
         if (data.token) {
           authToken = data.token;
+          setAuthToken(data.token); // Synchroniser avec useListings
           console.log("Token stored for mobile");
         }
         
@@ -90,7 +92,16 @@ export function useAuth() {
           throw new Error(error?.error || "Erreur lors de l'inscription");
         }
 
-        return res.json();
+        const data = await res.json();
+        
+        // Stocker le token s'il est présent après inscription
+        if (data.token) {
+          authToken = data.token;
+          setAuthToken(data.token); // Synchroniser avec useListings
+          console.log("Token stored after registration");
+        }
+
+        return data;
       } catch (err: any) {
         console.error("Erreur d'inscription :", err);
         throw new Error(err.message || "Échec de la requête réseau");
@@ -113,6 +124,9 @@ export function useAuth() {
       return res.json();
     },
     onSuccess: () => {
+      // Nettoyer le token lors de la déconnexion
+      authToken = null;
+      setAuthToken(null); // Synchroniser avec useListings
       client.invalidateQueries({ queryKey: ["getUser"] });
     },
   });
