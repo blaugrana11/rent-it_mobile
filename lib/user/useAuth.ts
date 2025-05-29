@@ -1,7 +1,8 @@
 // src/lib/user/useAuth.ts
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_BASE_URL } from "../api/listings";
-import { setAuthToken } from "../listings/useListings"; // Import de la fonction
+import { setAuthToken } from "../listings/useListings";
+import { setUserListingsAuthToken } from './useUserListings';
 
 let authToken: string | null = null;
 
@@ -59,6 +60,7 @@ export function useAuth() {
         if (data.token) {
           authToken = data.token;
           setAuthToken(data.token); // Synchroniser avec useListings
+          setUserListingsAuthToken(data.token);
           console.log("Token stored for mobile");
         }
         
@@ -98,6 +100,7 @@ export function useAuth() {
         if (data.token) {
           authToken = data.token;
           setAuthToken(data.token); // Synchroniser avec useListings
+          setUserListingsAuthToken(data.token);
           console.log("Token stored after registration");
         }
 
@@ -127,6 +130,7 @@ export function useAuth() {
       // Nettoyer le token lors de la déconnexion
       authToken = null;
       setAuthToken(null); // Synchroniser avec useListings
+      setUserListingsAuthToken(null);
       client.invalidateQueries({ queryKey: ["getUser"] });
     },
   });

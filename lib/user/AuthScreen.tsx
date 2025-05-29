@@ -115,7 +115,7 @@ export default function AuthScreen() {
           <TouchableOpacity 
             style={styles.actionButton}
             onPress={() => {
-              // TODO: Rediriger vers la page "Mes annonces"
+              router.push({ pathname: "/myListingsPage" });
               console.log("Redirection vers mes annonces");
             }}
           >
