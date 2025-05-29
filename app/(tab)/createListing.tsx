@@ -26,7 +26,7 @@ export default function CreateListingScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [condition, setCondition] = useState('excellent');
+  const [condition, setCondition] = useState('');
   const [images, setImages] = useState<ImageData[]>([]);
   
   const { createListing } = useListings();
@@ -133,6 +133,10 @@ export default function CreateListingScreen() {
       Alert.alert('Erreur', 'Le prix doit être un nombre valide');
       return;
     }
+    if (!condition.trim()) {
+      Alert.alert('Erreur', 'L\'état est requis');
+        return;
+    }
 
     try {
       // Créer le FormData avec les images pour React Native
@@ -194,7 +198,7 @@ export default function CreateListingScreen() {
 
         {/* État */}
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>État</Text>
+          <Text style={styles.label}>État *</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.conditionContainer}>
               {conditions.map((cond) => (
