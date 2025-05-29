@@ -3,8 +3,6 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-
-
 export default function TabLayout() {
   return (
     <Tabs
@@ -34,11 +32,11 @@ export default function TabLayout() {
       />
       
       <Tabs.Screen
-        name="listings"
+        name="createListing"
         options={{
-          title: 'Listings',
+          title: 'Place an Ad',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="list" size={size} color={color} />
+            <Ionicons name="add-circle" size={size} color={color} />
           ),
         }}
       />
@@ -46,12 +44,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="login"
         options={{
-          title: 'Login',
+          title: 'Profile',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />
+
     </Tabs>
   );
 }
