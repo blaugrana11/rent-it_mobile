@@ -6,7 +6,7 @@ import SearchBar from '@/components/SearchBar';
 import { API_BASE_URL } from '@/lib/api/listings';
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = (width - 48) / 2; // 16 padding left/right + 16 gap between items
+const ITEM_WIDTH = (width - 48) / 2;
 
 export default function ListingsScreen() {
   const router = useRouter();
@@ -36,43 +36,84 @@ export default function ListingsScreen() {
     setSearchParams(params);
   };
 
-  const renderListingItem = ({ item, index }: { item: Listing; index: number }) => (
-    <TouchableOpacity 
-      style={[
-        styles.card,
-        { marginRight: index % 2 === 0 ? 8 : 0, marginLeft: index % 2 === 1 ? 8 : 0 }
-      ]} 
-      onPress={() => router.push({
-        pathname: "/listings/[id]",
-        params: { id: item._id },
-      })}
-    >
-      {item.images?.[0] && (
-        <Image
-          source={{ uri: `${API_BASE_URL}${item.images[0]}` }}
-          style={styles.image}
-        />
-      )}
+  // Fonction pour créer une URI sécurisée
+  const createSafeImageUri = (imagePath: string | undefined | null): string | null => {
+    if (!imagePath || typeof imagePath !== 'string') {
+      return null;
+    }
+    
+    // Nettoyer le chemin d'image
+    const cleanPath = imagePath.trim();
+    if (!cleanPath) {
+      return null;
+    }
+    
+    try {
+      // S'assurer que l'API_BASE_URL se termine par un slash
+      const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
       
-      <View style={styles.cardContent}>
-        <Text style={styles.title} numberOfLines={2}>
-          {item.title}
-        </Text>
-        
-        <Text style={styles.price}>{item.price}€</Text>
-        
-        {item.condition && (
-          <View style={styles.conditionContainer}>
-            <Text style={styles.condition}>{item.condition}</Text>
+      // S'assurer que le chemin ne commence pas par un slash pour éviter la double barre
+      const cleanImagePath = cleanPath.startsWith('/') ? cleanPath.substring(1) : cleanPath;
+      
+      const fullUri = `${baseUrl}${cleanImagePath}`;
+      
+      // Validation basique de l'URI
+      const url = new URL(fullUri);
+      return url.toString();
+    } catch (error) {
+      console.warn('Invalid image URI:', imagePath, error);
+      return null;
+    }
+  };
+
+  const renderListingItem = ({ item, index }: { item: Listing; index: number }) => {
+    const imageUri = createSafeImageUri(item.images?.[0]);
+    
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.card,
+          { marginRight: index % 2 === 0 ? 8 : 0, marginLeft: index % 2 === 1 ? 8 : 0 }
+        ]} 
+        onPress={() => router.push({
+          pathname: "/listings/[id]",
+          params: { id: item._id },
+        })}
+      >
+        {imageUri ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.image}
+            onError={(error) => {
+              console.warn('Image loading error for URI:', imageUri, error.nativeEvent.error);
+            }}
+          />
+        ) : (
+          <View style={[styles.image, styles.placeholderImage]}>
+            <Text style={styles.placeholderText}>📷</Text>
           </View>
         )}
         
-        <Text style={styles.desc} numberOfLines={2}>
-          {item.description}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={styles.cardContent}>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.title}
+          </Text>
+          
+          <Text style={styles.price}>{item.price}€</Text>
+          
+          {item.condition && (
+            <View style={styles.conditionContainer}>
+              <Text style={styles.condition}>{item.condition}</Text>
+            </View>
+          )}
+          
+          <Text style={styles.desc} numberOfLines={2}>
+            {item.description}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -99,7 +140,7 @@ export default function ListingsScreen() {
           numColumns={2}
           columnWrapperStyle={styles.row}
           contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { y: scrollY } } }],
             { useNativeDriver: false }
@@ -139,6 +180,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 120,
     backgroundColor: '#f0f0f0',
+  },
+  placeholderImage: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  placeholderText: {
+    fontSize: 32,
+    opacity: 0.3,
   },
   cardContent: {
     padding: 12,
