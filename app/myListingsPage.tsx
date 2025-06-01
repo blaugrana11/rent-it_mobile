@@ -13,22 +13,22 @@ import {
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NavigationProp } from '@react-navigation/native';
 import { useAuth } from '../lib/user/useAuth';
 import { useUserListings } from '../lib/user/useUserListings';
 import { API_BASE_URL } from '../lib/api/listings';
 
-const { width } = Dimensions.get('window');
 
 // Fonction helper pour construire l'URL complète de l'image
 const getImageUrl = (imagePath: string) => {
   if (!imagePath) return null;
-  // Si l'URL est déjà complète, la retourner telle quelle
   if (imagePath.startsWith('http')) return imagePath;
-  // Sinon, construire l'URL complète
   return `${API_BASE_URL}${imagePath}`;
 };
 
-export default function MyListingsPage({ navigation }: { navigation: any }) {
+export default function MyListingsPage() {
+  const navigation = useNavigation<NavigationProp<any>>();
   const { user } = useAuth();
   const userId = user.data?._id;
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
@@ -41,7 +41,11 @@ export default function MyListingsPage({ navigation }: { navigation: any }) {
   } = useUserListings(userId || '');
 
   const handleGoBack = () => {
-    navigation.goBack();
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      console.log('Cannot go back, navigation stack is empty');
+    }
   };
 
   // Fonction pour supprimer une annonce
@@ -177,7 +181,7 @@ export default function MyListingsPage({ navigation }: { navigation: any }) {
 
   const listings = userListingsData?.listings || [];
 
-  // Header avec titre et stats - Version avec bouton back intégré
+  // Header avec titre et stats Version avec bouton back intégré
   const ListHeader = () => (
     <View style={styles.headerWrapper}>
       <View style={styles.header}>
@@ -228,7 +232,6 @@ export default function MyListingsPage({ navigation }: { navigation: any }) {
 
   // Render d'une annonce
   const renderListing = ({ item, index }: { item: any; index: number }) => {
-    // Construire l'URL complète de la première image
     const imageUrl = item.images && item.images.length > 0 
       ? getImageUrl(item.images[0]) 
       : null;
@@ -245,7 +248,7 @@ export default function MyListingsPage({ navigation }: { navigation: any }) {
         activeOpacity={0.7}
         disabled={isDeleting}
       >
-        {/* Image de l'annonce */}
+
         <View style={styles.imageContainer}>
           {imageUrl ? (
             <Image 
@@ -263,7 +266,7 @@ export default function MyListingsPage({ navigation }: { navigation: any }) {
             </View>
           )}
           
-          {/* Badge du nombre d'images */}
+
           {item.images && item.images.length > 1 && (
             <View style={styles.imageCountBadge}>
               <Text style={styles.imageCountText}>{item.images.length}</Text>
@@ -271,7 +274,7 @@ export default function MyListingsPage({ navigation }: { navigation: any }) {
           )}
         </View>
 
-        {/* Contenu de l'annonce */}
+
         <View style={[styles.listingContent, isDeleting && styles.contentDeleting]}>
           <View style={styles.listingHeader}>
             <Text style={styles.listingTitle} numberOfLines={2}>
@@ -293,7 +296,7 @@ export default function MyListingsPage({ navigation }: { navigation: any }) {
               })}
             </Text>
             
-            {/* Bouton supprimer déplacé */}
+
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={() => handleDeleteListing(item._id || item.id, item.title)}
@@ -311,7 +314,7 @@ export default function MyListingsPage({ navigation }: { navigation: any }) {
           </View>
         </View>
 
-        {/* Overlay de suppression */}
+
         {isDeleting && (
           <View style={styles.deletingOverlay}>
             <ActivityIndicator size="large" color="#FF3B30" />
@@ -345,7 +348,6 @@ const styles = StyleSheet.create({
   
   // Back button styles
   backButton: {
-    // Maintenant intégré dans le header
   },
   backButtonContainer: {
     width: 40,
@@ -356,7 +358,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Header styles - Version avec bouton back intégré
+
   headerWrapper: {
     marginBottom: 20,
     paddingHorizontal: 8,
