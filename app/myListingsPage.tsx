@@ -20,7 +20,6 @@ import { useUserListings } from '../lib/user/useUserListings';
 import { API_BASE_URL } from '../lib/api/listings';
 
 
-// Fonction helper pour construire l'URL complète de l'image
 const getImageUrl = (imagePath: string) => {
   if (!imagePath) return null;
   if (imagePath.startsWith('http')) return imagePath;
@@ -48,7 +47,6 @@ export default function MyListingsPage() {
     }
   };
 
-  // Fonction pour supprimer une annonce
   const handleDeleteListing = async (listingId: string, listingTitle: string) => {
     Alert.alert(
       "Supprimer l'annonce",
@@ -76,7 +74,6 @@ export default function MyListingsPage() {
                 throw new Error('Erreur lors de la suppression');
               }
 
-              // Recharger la liste après suppression
               await refetch();
               
               Alert.alert("Succès", "L'annonce a été supprimée avec succès");
@@ -92,7 +89,6 @@ export default function MyListingsPage() {
     );
   };
 
-  // Si pas connecté
   if (!user.data) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -120,7 +116,6 @@ export default function MyListingsPage() {
     );
   }
 
-  // Si loading
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -147,7 +142,6 @@ export default function MyListingsPage() {
     );
   }
 
-  // Si erreur
   if (error) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -181,7 +175,6 @@ export default function MyListingsPage() {
 
   const listings = userListingsData?.listings || [];
 
-  // Header avec titre et stats Version avec bouton back intégré
   const ListHeader = () => (
     <View style={styles.headerWrapper}>
       <View style={styles.header}>
@@ -210,7 +203,6 @@ export default function MyListingsPage() {
     </View>
   );
 
-  // Si pas d'annonces
   if (listings.length === 0) {
     return (
       <SafeAreaView style={styles.safeArea}>
@@ -230,7 +222,6 @@ export default function MyListingsPage() {
     );
   }
 
-  // Render d'une annonce
   const renderListing = ({ item, index }: { item: any; index: number }) => {
     const imageUrl = item.images && item.images.length > 0 
       ? getImageUrl(item.images[0]) 
@@ -346,7 +337,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
   },
   
-  // Back button styles
   backButton: {
   },
   backButtonContainer: {
@@ -414,7 +404,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Loading styles
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -426,7 +415,6 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
   },
 
-  // Error styles
   errorContainer: {
     flex: 1,
     justifyContent: 'center',

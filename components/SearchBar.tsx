@@ -50,7 +50,6 @@ export default function SearchBar({ onSearch }: Props) {
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
         <View style={styles.container}>
-          {/* Barre de recherche principale */}
           <View style={styles.mainSearchContainer}>
             <View style={styles.searchInputContainer}>
               <Text style={styles.searchIcon}>🔍</Text>
@@ -86,7 +85,6 @@ export default function SearchBar({ onSearch }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* Filtres étendus */}
           {filtersVisible && (
             <View style={styles.filtersContainer}>
               <View style={styles.priceRow}>
@@ -155,7 +153,6 @@ export default function SearchBar({ onSearch }: Props) {
         </View>
       </KeyboardAvoidingView>
 
-      {/* Modal pour la sélection de condition */}
       <Modal
         visible={modalVisible}
         animationType="slide"

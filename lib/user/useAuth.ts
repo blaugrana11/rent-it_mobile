@@ -15,14 +15,13 @@ export function useAuth() {
       console.log("Fetching user...");
       
       const headers: Record<string, string> = {};
-      
-      // Si on a un token, l'ajouter aux headers
+
       if (authToken) {
         headers['Authorization'] = `Bearer ${authToken}`;
       }
       
       const res = await fetch(`${API_BASE_URL}/api/me`, {
-        credentials: "include", // Garde ça pour la compatibilité web
+        credentials: "include",
         headers,
       });
       
@@ -56,10 +55,9 @@ export function useAuth() {
         const data = await res.json();
         console.log("Login response:", data);
         
-        // Stocker le token s'il est présent
         if (data.token) {
           authToken = data.token;
-          setAuthToken(data.token); // Synchroniser avec useListings
+          setAuthToken(data.token);
           setUserListingsAuthToken(data.token);
           console.log("Token stored for mobile");
         }
@@ -96,10 +94,9 @@ export function useAuth() {
 
         const data = await res.json();
         
-        // Stocker le token s'il est présent après inscription
         if (data.token) {
           authToken = data.token;
-          setAuthToken(data.token); // Synchroniser avec useListings
+          setAuthToken(data.token);
           setUserListingsAuthToken(data.token);
           console.log("Token stored after registration");
         }
@@ -127,9 +124,8 @@ export function useAuth() {
       return res.json();
     },
     onSuccess: () => {
-      // Nettoyer le token lors de la déconnexion
       authToken = null;
-      setAuthToken(null); // Synchroniser avec useListings
+      setAuthToken(null);
       setUserListingsAuthToken(null);
       client.invalidateQueries({ queryKey: ["getUser"] });
     },

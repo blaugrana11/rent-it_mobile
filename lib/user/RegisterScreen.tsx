@@ -23,7 +23,6 @@ export default function RegisterScreen() {
 
   const handleSubmit = () => {
     if (!email || !password || !pseudo) {
-      // Affichage d'erreur plus moderne (tu peux garder Alert si tu préfères)
       return;
     }
 
@@ -31,13 +30,11 @@ export default function RegisterScreen() {
       { email, password, pseudo },
       {
         onSuccess: (data) => {
-          // Alert moderne ou tu peux utiliser une toast notification
           setTimeout(() => {
             navigation.goBack();
           }, 1500);
         },
         onError: (error: any) => {
-          // Gestion d'erreur moderne
           console.error("Inscription échouée:", error.message);
         },
       }
@@ -52,7 +49,6 @@ export default function RegisterScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       
-      {/* Bouton back moderne */}
       <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
         <View style={styles.backButtonContainer}>
           <Ionicons name="arrow-back" size={24} color="#007AFF" />
@@ -65,7 +61,6 @@ export default function RegisterScreen() {
           Créez votre compte pour commencer
         </Text>
 
-        {/* Affichage des erreurs */}
         {register.isError && (
           <View style={styles.errorContainer}>
             <Ionicons name="alert-circle" size={20} color="#FF3B30" />
@@ -75,7 +70,6 @@ export default function RegisterScreen() {
           </View>
         )}
 
-        {/* Affichage du succès */}
         {register.isSuccess && (
           <View style={styles.successContainer}>
             <Ionicons name="checkmark-circle" size={20} color="#34C759" />

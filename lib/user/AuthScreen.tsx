@@ -94,13 +94,11 @@ export default function AuthScreen() {
     );
   }
 
-  // Vue connectée - Interface utilisateur moderne
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
     
-
-      {/* Contenu principal */}
       <View style={styles.profileContent}>
         <View style={styles.profileIcon}>
           <Ionicons name="person" size={60} color="#007AFF" />
@@ -110,7 +108,7 @@ export default function AuthScreen() {
           {user.data?.pseudo || user.data?.email}
         </Text>
 
-        {/* Boutons d'actions */}
+
         <View style={styles.actionButtons}>
           <TouchableOpacity 
             style={styles.actionButton}

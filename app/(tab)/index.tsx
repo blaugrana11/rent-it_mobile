@@ -36,28 +36,23 @@ export default function ListingsScreen() {
     setSearchParams(params);
   };
 
-  // Fonction pour créer une URI sécurisée
   const createSafeImageUri = (imagePath: string | undefined | null): string | null => {
     if (!imagePath || typeof imagePath !== 'string') {
       return null;
     }
     
-    // Nettoyer le chemin d'image
     const cleanPath = imagePath.trim();
     if (!cleanPath) {
       return null;
     }
     
     try {
-      // S'assurer que l'API_BASE_URL se termine par un slash
       const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
       
-      // S'assurer que le chemin ne commence pas par un slash pour éviter la double barre
       const cleanImagePath = cleanPath.startsWith('/') ? cleanPath.substring(1) : cleanPath;
       
       const fullUri = `${baseUrl}${cleanImagePath}`;
       
-      // Validation basique de l'URI
       const url = new URL(fullUri);
       return url.toString();
     } catch (error) {

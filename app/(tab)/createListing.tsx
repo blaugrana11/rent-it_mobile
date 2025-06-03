@@ -54,7 +54,6 @@ export default function CreateListingScreen() {
 
   const selectFromGallery = async () => {
     try {
-      // Demander les permissions
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (permissionResult.granted === false) {
@@ -86,7 +85,6 @@ export default function CreateListingScreen() {
 
   const takePhoto = async () => {
     try {
-      // Demander les permissions
       const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
       
       if (permissionResult.granted === false) {
@@ -120,7 +118,6 @@ export default function CreateListingScreen() {
   };
 
   const handleSubmit = async () => {
-    // Validation des champs
     if (!title.trim()) {
       Alert.alert('Erreur', 'Le titre est requis');
       return;
@@ -139,24 +136,22 @@ export default function CreateListingScreen() {
     }
 
     try {
-      // Créer le FormData avec les images pour React Native
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description);
       formData.append('price', price);
       formData.append('condition', condition);
 
-      // Ajouter les images au FormData
       images.forEach((image, index) => {
         formData.append('images', {
           uri: image.uri,
           type: image.type,
           name: image.name,
-        } as any); // Le 'as any' est nécessaire pour React Native
+        } as any); 
       });
 
       await createListing.mutateAsync({
-        formData, // On passe directement le FormData
+        formData, 
       });
 
       Alert.alert('Succès', 'Annonce créée avec succès!', [
@@ -172,7 +167,6 @@ export default function CreateListingScreen() {
       <ScrollView style={styles.scrollView}>
         <Text style={styles.title}>Créer une annonce</Text>
 
-        {/* Titre */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Titre *</Text>
           <TextInput
@@ -184,7 +178,6 @@ export default function CreateListingScreen() {
           />
         </View>
 
-        {/* Prix */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Prix (€) *</Text>
           <TextInput
@@ -196,7 +189,6 @@ export default function CreateListingScreen() {
           />
         </View>
 
-        {/* État */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>État *</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -222,7 +214,6 @@ export default function CreateListingScreen() {
           </ScrollView>
         </View>
 
-        {/* Description */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Description *</Text>
           <TextInput
@@ -236,7 +227,6 @@ export default function CreateListingScreen() {
           />
         </View>
 
-        {/* Images */}
         <View style={styles.inputGroup}>
           <Text style={styles.label}>Images ({images.length}/5)</Text>
           
@@ -267,7 +257,6 @@ export default function CreateListingScreen() {
           </ScrollView>
         </View>
 
-        {/* Bouton de soumission */}
         <TouchableOpacity
           style={[styles.submitButton, createListing.isPending && styles.submitButtonDisabled]}
           onPress={handleSubmit}
